@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useEffect, useState } from 'react';
 import { nanoid } from 'nanoid';
 
 import AddForm from 'components/AddForm/AddForm';
@@ -6,31 +6,25 @@ import { ContactList } from './ContactList/ContactList';
 import { Filter } from './Filter/Filter';
 import { Section } from './Section/Section.styled';
 
-class App extends Component {
-  state = {
-    contacts: [
-      { id: nanoid(), name: 'Rosie Simpson', number: '459-12-56' },
-      { id: nanoid(), name: 'Hermione Kline', number: '443-89-12' },
-      { id: nanoid(), name: 'Eden Clements', number: '645-17-79' },
-      { id: nanoid(), name: 'Annie Copeland', number: '227-91-26' },
-    ],
-    filter: '',
-  };
-  componentDidMount() {
-    const savedData = JSON.parse(localStorage.getItem('phonebook'));
-    if (savedData) {
-      this.setState({ contacts: savedData });
-    }
-  }
+const firstData = [
+  { id: nanoid(4), name: 'Arnold Schwarzenegger', number: '5558801' },
+  { id: nanoid(4), name: 'Sylvester Stallone', number: '5558802' },
+  { id: nanoid(4), name: 'Bruce Willis', number: '5558803' },
+  { id: nanoid(4), name: 'Jason Statham', number: '5558804' },
+];
+const savedData = JSON.parse(localStorage.getItem('phonebook'));
 
-  componentDidUpdate(_, prevState) {
-    if (this.state.contacts !== prevState.contacts) {
-      localStorage.setItem('phonebook', JSON.stringify(this.state.contacts));
-    }
-  }
-  addContact = data => {
-    const { contacts } = this.state;
+function App() {
+  const [contacts, setContacts] = useState(
+    savedData ? [...savedData] : firstData
+  );
+  const [filter, setFilter] = useState('');
 
+  useEffect(() => {
+    localStorage.setItem('phonebook', JSON.stringify(contacts));
+  }, [contacts]);
+
+  const addContact = data => {
     if (
       contacts.some(
         ({ name }) => name.toLowerCase() === data.name.toLowerCase()
@@ -44,57 +38,42 @@ class App extends Component {
         number: data.number,
       };
 
-      this.setState(prevState => ({
-        contacts: [...prevState.contacts, newContact],
-      }));
+      setContacts([...contacts, newContact]);
     }
   };
 
-  showContacts = () => {
-    const { contacts, filter } = this.state;
-    return contacts.filter(contact =>
-      contact.name.toLowerCase().includes(filter.toLowerCase())
-    );
+  const normalizedFilter = filter.toLowerCase();
+  const filterContacts = contacts.filter(el =>
+    el.name.toLowerCase().includes(normalizedFilter)
+  );
+  const deleteContact = contactID => {
+    setContacts(contacts.filter(contact => contact.id !== contactID));
   };
 
-  deleteContact = contactID => {
-    this.setState(prevState => ({
-      contacts: prevState.contacts.filter(contact => contact.id !== contactID),
-    }));
+  const filterChange = event => {
+    setFilter(event.currentTarget.value);
   };
 
-  filterChange = evt => {
-    const { value } = evt.currentTarget;
-    this.setState({ filter: value });
-  };
+  return (
+    <div>
+      <Section>
+        <h1>Phonebook</h1>
+        <AddForm onSubmit={addContact} />
+      </Section>
 
-  render() {
-    const visibleContacts = this.showContacts();
-    const { filter } = this.state;
-    return (
-      <div>
-        <Section>
-          <h1>Phonebook</h1>
-          <AddForm onSubmit={this.addContact} />
-        </Section>
+      <Section>
+        <h2>Contacts</h2>
 
-        <Section>
-          <h2>Contacts</h2>
+        {filterContacts.length > 0 || filter ? (
+          <Filter value={filter} onChange={filterChange} />
+        ) : (
+          <h1>No contacts added</h1>
+        )}
 
-          {visibleContacts.length > 0 || filter ? (
-            <Filter value={filter} onChange={this.filterChange} />
-          ) : (
-            <h1>No contacts added</h1>
-          )}
-
-          <ContactList
-            contacts={visibleContacts}
-            deleteContact={this.deleteContact}
-          />
-        </Section>
-      </div>
-    );
-  }
+        <ContactList contacts={filterContacts} deleteContact={deleteContact} />
+      </Section>
+    </div>
+  );
 }
 
 export { App };
