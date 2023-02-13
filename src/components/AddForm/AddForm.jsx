@@ -16,6 +16,7 @@ const AddForm = ({ onSubmit }) => {
   const handleSubmit = evt => {
     evt.preventDefault();
     onSubmit(inputValues);
+    setInputValues({ name: '', number: '' });
   };
 
   return (

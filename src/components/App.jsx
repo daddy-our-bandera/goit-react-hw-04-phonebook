@@ -15,10 +15,10 @@ const firstData = [
 const savedData = JSON.parse(localStorage.getItem('phonebook'));
 
 function App() {
+  const [filter, setFilter] = useState('');
   const [contacts, setContacts] = useState(
     savedData ? [...savedData] : firstData
   );
-  const [filter, setFilter] = useState('');
 
   useEffect(() => {
     localStorage.setItem('phonebook', JSON.stringify(contacts));
